@@ -11,6 +11,13 @@ void draw(int x, int y, CHAR_INFO screenBuffer[], int color) {
 	screenBuffer[x + y * SCREEN_WIDTH].Attributes = color;
 }
 
+void setCurrentColor(CHAR_INFO screenBuffer[], int color) {
+	screenBuffer[(currentColor >> 4) + 50 * SCREEN_WIDTH].Char.AsciiChar = ' ';
+	currentColor = color;
+	screenBuffer[(currentColor >> 4) + 50 * SCREEN_WIDTH].Char.AsciiChar = 'V';
+	screenBuffer[(currentColor >> 4) + 50 * SCREEN_WIDTH].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+}
+
 bool input(CHAR_INFO screenBuffer[]) {
 	INPUT_RECORD inputRecord;
 	DWORD events = 0;
@@ -24,10 +31,7 @@ bool input(CHAR_INFO screenBuffer[]) {
 		int y = inputRecord.Event.MouseEvent.dwMousePosition.Y;
 		if (inputRecord.Event.MouseEvent.dwButtonState == FROM_LEFT_1ST_BUTTON_PRESSED) {
 			if (y > CANVAS_HEIGHT && x < 16) {
-				screenBuffer[(currentColor >> 4) + (y - 1) * SCREEN_WIDTH].Char.AsciiChar = ' ';
-				currentColor = inputRecord.Event.MouseEvent.dwMousePosition.X << 4;
-				screenBuffer[x + (y - 1) * SCREEN_WIDTH].Char.AsciiChar = 'V';
-				screenBuffer[x + (y - 1) * SCREEN_WIDTH].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
+				setCurrentColor(screenBuffer, inputRecord.Event.MouseEvent.dwMousePosition.X << 4);
 			}
 			else {
 				draw(x, y, screenBuffer, currentColor);
@@ -36,6 +40,10 @@ bool input(CHAR_INFO screenBuffer[]) {
 		}
 		else if (inputRecord.Event.MouseEvent.dwButtonState == RIGHTMOST_BUTTON_PRESSED) {
 			draw(x, y, screenBuffer, 0);
+			return true;
+		}
+		else if (inputRecord.Event.MouseEvent.dwButtonState == FROM_LEFT_2ND_BUTTON_PRESSED) {
+			setCurrentColor(screenBuffer, screenBuffer[x + y * SCREEN_WIDTH].Attributes);
 			return true;
 		}
 	}
@@ -65,6 +73,8 @@ int main() {
 			screenBuffer[x + y * SCREEN_WIDTH].Char.AsciiChar = ' ';
 		}
 	}
+
+	setCurrentColor(screenBuffer, currentColor);
 
 	SMALL_RECT canvasRect = { 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1 };
 	COORD writeStart = { 0, 0 };
