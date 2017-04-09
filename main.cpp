@@ -1,10 +1,13 @@
 #include <windows.h>
+#include <iostream>
+
+using namespace std;
 
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 52
 #define CANVAS_HEIGHT 50
 
-int a = 1;
+HANDLE hInput;
 int currentColor = BACKGROUND_GREEN;
 
 void draw(int x, int y, CHAR_INFO screenBuffer[], int color) {
@@ -21,9 +24,7 @@ void setCurrentColor(CHAR_INFO screenBuffer[], int color) {
 bool input(CHAR_INFO screenBuffer[]) {
 	INPUT_RECORD inputRecord;
 	DWORD events = 0;
-	HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE);
 
-	SetConsoleMode(hInput, ENABLE_PROCESSED_INPUT | ENABLE_MOUSE_INPUT);
 	ReadConsoleInput(hInput, &inputRecord, 1, &events);
 
 	if (inputRecord.EventType == MOUSE_EVENT) {
@@ -46,6 +47,10 @@ bool input(CHAR_INFO screenBuffer[]) {
 			setCurrentColor(screenBuffer, screenBuffer[x + y * SCREEN_WIDTH].Attributes);
 			return true;
 		}
+		else if (inputRecord.Event.MouseEvent.dwButtonState == MOUSE_WHEELED) {
+			cout << "wheeled" << endl;
+			return false;
+		}
 	}
 	else if (inputRecord.EventType == KEY_EVENT && inputRecord.Event.KeyEvent.bKeyDown) {
 		if (inputRecord.Event.KeyEvent.wVirtualKeyCode == VK_ESCAPE) {
@@ -59,8 +64,10 @@ bool input(CHAR_INFO screenBuffer[]) {
 int main() {
 	SMALL_RECT screenRect = { 0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1 };
 	HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-
 	SetConsoleWindowInfo(hOutput, TRUE, &screenRect);
+
+	hInput = GetStdHandle(STD_INPUT_HANDLE);
+	SetConsoleMode(hInput, ENABLE_PROCESSED_INPUT | ENABLE_MOUSE_INPUT);
 
 	CHAR_INFO screenBuffer[SCREEN_WIDTH * SCREEN_HEIGHT] = { 0 };
 	COORD bufferSize = { SCREEN_WIDTH, SCREEN_HEIGHT };
