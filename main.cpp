@@ -3,11 +3,14 @@
 int main() {
 	Canvas canvas;
 
-	while (1) {
-		if (canvas.input()) {
+	int status = NO_ACTION;
+
+	while (status != EXIT) {
+		status = canvas.input();
+		if (status == REDRAW) {
 			canvas.draw();
 		}
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }

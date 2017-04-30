@@ -48,7 +48,7 @@ void Canvas::setCurrentColor(int color) {
 	screenBuffer[(currentColor >> 4) + 50 * SCREEN_WIDTH].Attributes = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED;
 }
 
-bool Canvas::input() {
+int Canvas::input() {
 	INPUT_RECORD inputRecord;
 	DWORD events = 0;
 
@@ -64,22 +64,22 @@ bool Canvas::input() {
 			else {
 				drawPoint(x, y, currentColor);
 			}
-			return true;
+			return REDRAW;
 		}
 		else if (inputRecord.Event.MouseEvent.dwButtonState == RIGHTMOST_BUTTON_PRESSED) {
 			drawPoint(x, y, 0);
-			return true;
+			return REDRAW;
 		}
 		else if (inputRecord.Event.MouseEvent.dwButtonState == FROM_LEFT_2ND_BUTTON_PRESSED) {
 			setCurrentColor(screenBuffer[x + y * SCREEN_WIDTH].Attributes);
-			return true;
+			return REDRAW;
 		}
 	}
 	else if (inputRecord.EventType == KEY_EVENT && inputRecord.Event.KeyEvent.bKeyDown) {
 		if (inputRecord.Event.KeyEvent.wVirtualKeyCode == VK_ESCAPE) {
-			exit(0);
+			return EXIT;
 		}
 	}
 
-	return false;
+	return NO_ACTION;
 }
